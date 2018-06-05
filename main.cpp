@@ -55,7 +55,8 @@ int main(int argc, char** argv) {
     delete[] tmpZeros;
 
     // Write the new entry point, decompression code.
-    CodePatcher::writeLoader(loaderCodeSection, packedCodeSec, textSection->get_address());
+    CodePatcher patcher = CodePatcher();
+    patcher.writeLoader(loaderCodeSection, packedCodeSec, textSection->get_address());
 
     // Save the elf
     Globals::elf->save(string(argv[argc - 1]) + ".pck");
