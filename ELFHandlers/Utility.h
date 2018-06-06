@@ -33,6 +33,12 @@ public:
      * @return the ELF's section called '.text', where the code should be
      */
     static ELFIO::section *getTextSection();
+
+    /**
+     * @param val an unsigned numeric value
+     * @return a string representing the hex of val
+     */
+    static string intToHex(unsigned long val);
 };
 
 

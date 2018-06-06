@@ -6,6 +6,7 @@
  */
 
 #include "CodePatcher.h"
+#include "../Helpers/Logger.h"
 
 
 using namespace std;
@@ -67,9 +68,10 @@ void CodePatcher::writeLoader(ELFIO::section *loaderCodeSection, ELFIO::section 
     writeData(sizeof(uint_least16_t));
 
     // Make sure no extra uneeded buffer was allocated. Just for sake good programming practices.
-    if(offset != LOADER_CODE_SIZE) // TODO: ERROR
-        cout << "Warning: The specified loader code size defined in the program is bigger than"
-                " the code actually is.\nIf you see this message, letting developers know would be much appreciated." << endl;
+    if(offset != LOADER_CODE_SIZE)
+        Logger::log("Warning: The specified loader code size defined in the program is bigger than"
+                    " the code actually is.",
+                    LOG_LEVEL_DEBUG);
 
     // After writing all the required code, write the code buffer to the ELF's memory
     loaderCodeSection->set_data(code.get(), (ELFIO::Elf_Word)offset);
@@ -110,11 +112,10 @@ void CodePatcher::writeUnpackerLoader() {
     ifstream unpackerCodeFile(UNPACKER_CODE_FILE_PATH, ios::binary | ios::ate);
 
     int unpackerCodeSize = (int)unpackerCodeFile.tellg();
-    if(unpackerCodeSize != UNPACKER_CODE_SIZE){ // TODO: error
-        cout << "ERROR: The loader's code size found in packerLoader.bin does not match the one "
-             "defined in the program.\nPlease contact the developers for further support." << endl;
-        exit(1);
-    } else if(offset + unpackerCodeSize > LOADER_CODE_SIZE)
+    if(unpackerCodeSize != UNPACKER_CODE_SIZE)
+        Logger::throwErr("The loader's code size found in packerLoader.bin does not match the one "
+             "defined in the program.\nPlease contact the developers for further support.");
+    else if(offset + unpackerCodeSize > LOADER_CODE_SIZE)
         emitBufferOverflowError();
 
     unpackerCodeFile.seekg(0, ios::beg);
@@ -123,8 +124,7 @@ void CodePatcher::writeUnpackerLoader() {
     offset += unpackerCodeSize;
 }
 
-void CodePatcher::emitBufferOverflowError() { // TODO: error
-    cout << "ERROR: Stack overflow detected while writing loader.\n"
-            "Please contact the developers for further support." << endl;
-    exit(1);
+void CodePatcher::emitBufferOverflowError() {
+    Logger::throwErr("Stack overflow detected while writing loader.\n"
+                    "Please contact the developers for further support.");
 }

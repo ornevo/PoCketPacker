@@ -8,9 +8,8 @@
 
 #include "Compressor.h"
 #include "../Helpers/Globals.h"
+#include "../Helpers/Logger.h"
 #include <climits>
-
-#define DEBUG
 
 
 using namespace std;
@@ -114,17 +113,16 @@ CompressionRetVal Compressor::compress(const char* data, unsigned long dataLen) 
     output.seekg(0, output.beg);
     output.read(writePtr, compressedDataSize + freqsListSize);
 
-    #ifdef DEBUG
+#ifdef DEBUG
+    // If debug, write debug information about the compression
 
-        ofstream tmpdebugfile("./tests/compressedData", ios_base::out | ios_base::binary);
-        tmpdebugfile.write(compressedData, (writePtr-compressedData) + compressedDataSize + freqsListSize);
-        tmpdebugfile.close();
-        ofstream tmpdebugfile2("./tests/decompressedData.orig", ios_base::out | ios_base::binary);
-        tmpdebugfile2.write(data, dataLen);
-        tmpdebugfile2.close();
-
-
-    #endif
+    ofstream tmpdebugfile("./tests/compressedData", ios_base::out | ios_base::binary);
+    tmpdebugfile.write(compressedData, (writePtr-compressedData) + compressedDataSize + freqsListSize);
+    tmpdebugfile.close();
+    ofstream tmpdebugfile2("./tests/decompressedData.orig", ios_base::out | ios_base::binary);
+    tmpdebugfile2.write(data, dataLen);
+    tmpdebugfile2.close();
+#endif
 
     return {compressedData, (writePtr-compressedData) + compressedDataSize + freqsListSize};
 }
@@ -174,7 +172,7 @@ void Compressor::setEncodingCodes(shared_ptr<TNode> huffTree) { setEncodingCodes
 void Compressor::setEncodingCodes(string pathSoFar, shared_ptr<TNode> huffTree) {
     if(huffTree -> isSet) {
         huffTree->encoding = pathSoFar;
-        cout << +((unsigned char)huffTree->ch) << " " << pathSoFar << endl;
+        Logger::log(to_string(+((unsigned char)huffTree->ch)) + " is encoded as " + pathSoFar, LOG_LEVEL_DEBUG);
     } else {
         setEncodingCodes(pathSoFar + "0", huffTree -> left);
         setEncodingCodes(pathSoFar + "1", huffTree -> right);
@@ -199,10 +197,8 @@ fstream& Compressor::getTmpFile(bool trunc) {
     tmpFile.open(TMP_FILE_PATH,
                  fstream::in | fstream::out | (trunc ? fstream::trunc : fstream::app) | fstream::binary);
 
-    if (!tmpFile.good()) {
-        cout << "ERROR opening tmp file for read/write." << endl;
-        exit(1);
-    }
+    if (!tmpFile.good())
+        Logger::throwErr("ERROR opening tmp file for read/write.");
 
     tmpFile.seekg(0, ios_base::beg);
     return tmpFile;

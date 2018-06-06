@@ -5,6 +5,7 @@
  *      that are used by a few different classes
  */
 
+#include <sstream>
 #include "Utility.h"
 
 
@@ -42,4 +43,11 @@ ELFIO::segment *Utility::getSegmentByPermissions(ELFIO::Elf_Word perms) {
     });
 
     return ret;
+}
+
+string Utility::intToHex(unsigned long val) {
+    stringstream stream;
+    stream << hex << val;
+    string result( stream.str() );
+    return result;
 }

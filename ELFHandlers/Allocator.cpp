@@ -7,6 +7,7 @@
 
 #include "Allocator.h"
 #include "../Helpers/Globals.h"
+#include "../Helpers/Logger.h"
 
 
 using namespace std;
@@ -17,12 +18,15 @@ using namespace std;
 ELFIO::section * Allocator::addPackedSec(unsigned long packedCodeSize) {
     ELFIO::section *ret = addSection(STORED_PACKED_CODE_SECTION_NAME, packedCodeSize, packedCodeSize,
                                      SHF_WRITE | SHF_ALLOC, 0x4);
+
+    Logger::log("packed code section added at" + Utility::intToHex(ret->get_address()), LOG_LEVEL_DEBUG);
     return ret;
 }
 
 ELFIO::section * Allocator::addLoaderSec(unsigned long size) {
     ELFIO::section *ret = addSection(LOADER_CODE_SECTION_NAME, size, size,
                                      SHF_ALLOC | SHF_EXECINSTR, 0x1000);
+    Logger::log("loader code section added at" + Utility::intToHex(ret->get_address()), LOG_LEVEL_DEBUG);
     return ret;
 }
 
@@ -49,8 +53,11 @@ Allocator::addSection(string sectionName, unsigned long secSizeInFile, unsigned 
     ELFIO::segment *seg = Utility::getSegmentByPermissions(permissions);
 
     // If there is no existing segment with the requested permissions, create one
-    if (seg == nullptr)
+    if (seg == nullptr) {
+        Logger::log("no segment with permissions " + to_string(permissions) + " was found. Creating one...",
+                    LOG_LEVEL_DEBUG);
         seg = addSegment(secSizeInFile, secSizeInMem, permissions, align).get();
+    }
 
     ret->set_address(getNextAvailableSecAddress(seg));
 
