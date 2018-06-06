@@ -1,9 +1,18 @@
-//
-// Created by ororor012 on 05/03/18.
-//
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This file contains the definition and implementation of the unpacker loader
+ */
 
 #include "./loaders.h"
 
+/**
+ * This is the unpacker loader.
+ * @param dest is the address to which the unpacker should write the unpacked code.
+ *              should be passed in RDI register.
+ * @param compressedCode is the address of the compressed code, as was compressed by the packer.
+ *              should be passed in RSI register.
+ */
 void packerLoader();
 
 void packerLoader() {

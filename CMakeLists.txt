@@ -3,7 +3,7 @@ project(FinalPackerTry)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(FinalPackerTry main.cpp HelperClasses/Compressor.cpp HelperClasses/Compressor.h HelperClasses/Allocator.cpp HelperClasses/Allocator.h HelperClasses/CodePatcher.cpp HelperClasses/CodePatcher.h HelperClasses/Globals.h HelperClasses/Globals.cpp)
+add_executable(FinalPackerTry main.cpp ELFHandlers/Utility.h ELFHandlers/Utility.cpp Processors/Compressor.cpp Processors/Compressor.h ELFHandlers/Allocator.cpp ELFHandlers/Allocator.h ELFHandlers/CodePatcher.cpp ELFHandlers/CodePatcher.h Helpers/Globals.h Helpers/Globals.cpp)
 
 add_executable(loader-test tests/testLoader.c)
 

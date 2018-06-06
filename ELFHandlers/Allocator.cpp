@@ -1,24 +1,28 @@
-//
-// Created by ororor012 on 04/05/18.
-//
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This file is the implementation of the Allocator class, which handles adding sections and
+ *      segments to the ELF file.
+ */
 
 #include "Allocator.h"
-#include "Globals.h"
+#include "../Helpers/Globals.h"
+
 
 using namespace std;
+
 
 /* PUBLIC FUNCTIONS */
 
 ELFIO::section * Allocator::addPackedSec(unsigned long packedCodeSize) {
-    ELFIO::section *ret = addSection(".pckdtext", packedCodeSize, packedCodeSize,
-                    SHF_WRITE | SHF_ALLOC, 0x4);
+    ELFIO::section *ret = addSection(STORED_PACKED_CODE_SECTION_NAME, packedCodeSize, packedCodeSize,
+                                     SHF_WRITE | SHF_ALLOC, 0x4);
     return ret;
 }
 
-
 ELFIO::section * Allocator::addLoaderSec(unsigned long size) {
-    ELFIO::section *ret = addSection(".unpacktext", size, size,
-                                                SHF_ALLOC | SHF_EXECINSTR, 0x1000);
+    ELFIO::section *ret = addSection(LOADER_CODE_SECTION_NAME, size, size,
+                                     SHF_ALLOC | SHF_EXECINSTR, 0x1000);
     return ret;
 }
 
@@ -30,10 +34,9 @@ Allocator::addSection(string sectionName, unsigned long secSizeInFile, unsigned 
                       ELFIO::Elf_Word permissions, ELFIO::Elf_Xword align) {
     ELFIO::section *ret = Globals::elf->sections.add(sectionName);
 
-    /*
-     * This means that the section holds information defined by the program, with no
-     *  specific meaning.
-     */
+
+    // This means that the section holds information defined by the program, with no
+    //  specific meaning.
     ret->set_type(SHT_PROGBITS);
 
     // Permissions
@@ -43,22 +46,11 @@ Allocator::addSection(string sectionName, unsigned long secSizeInFile, unsigned 
     ret->set_addr_align(align);
 
     // Find a segment with the proper permissions for the section
-    ELFIO::segment *seg = nullptr;
-    bool found = false;
-    for_each(Globals::elf->segments.begin(), Globals::elf->segments.end(), [&](ELFIO::segment *current) {
-        // If this segment has the requested permissions and is being loaded to memory
-        if (!found &&
-            current->get_type() == PT_LOAD && current->get_flags() & permissions == permissions) {
-            seg = current;
-            found = true;
-        }
-    });
+    ELFIO::segment *seg = Utility::getSegmentByPermissions(permissions);
 
     // If there is no existing segment with the requested permissions, create one
-    if (!found) {
-        cout << "HERE" << endl;
+    if (seg == nullptr)
         seg = addSegment(secSizeInFile, secSizeInMem, permissions, align).get();
-    }
 
     ret->set_address(getNextAvailableSecAddress(seg));
 
@@ -108,11 +100,10 @@ shared_ptr<ELFIO::segment> Allocator::addSegment(unsigned long segSizeInFile, un
     return ret;
 }
 
-
 ELFIO::Elf64_Addr Allocator::getValidSegmentAddr(ELFIO::Elf_Xword alignment) {
     // We need to specify an address for the new segment,
     // so that it won't overlap with other loadable segments.
-    ELFIO::Elf64_Addr nextFreeVAddr = 0; // Init at the default x64 text segment address
+    ELFIO::Elf64_Addr nextFreeVAddr = 0;
 
     // For each segment, if the currently free address is taken by it, increase the free address to be after it.
     for_each(Globals::elf->segments.begin(), Globals::elf->segments.end(), [&](ELFIO:: segment *current) {
@@ -126,40 +117,3 @@ ELFIO::Elf64_Addr Allocator::getValidSegmentAddr(ELFIO::Elf_Xword alignment) {
 
     return nextFreeVAddr;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,28 +1,30 @@
-//#include <boost/filesystem.hpp>
-#include <iostream>
-#include "./HelperClasses/Globals.h"
-#include "./HelperClasses/Compressor.h"
-#include "./HelperClasses/Allocator.h"
-#include "./HelperClasses/CodePatcher.h"
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This file contains the main function, which contains the top-level flow of the packing
+ *      process and calls top-level functions.
+ */
 
-//namespace fs = boost::filesystem;
+#include <iostream>
+#include "Helpers/Globals.h"
+#include "ELFHandlers/Utility.h"
+#include "Processors/Compressor.h"
+#include "ELFHandlers/Allocator.h"
+#include "ELFHandlers/CodePatcher.h"
+
+#define PACKED_FILE_EXTENSION ".pck"
+
+
 using namespace std;
 
-/*
+
+/**
  * Initializes the passed file in the arguments.
- * Returns true if file is valid.
+ * @param argc the argc which was passed to main(...)
+ * @param argv the argv which was passed to main(...)
+ * @return true if file is valid.
  */
 bool initElfio(int argc, char** argv);
-
-/*
- * Get .text segment
- * */
-ELFIO::segment *getExecutableSegment();
-
-/*
- * Get .text section
- */
-ELFIO::section *getTextSection();
 
 
 int main(int argc, char** argv) {
@@ -41,12 +43,12 @@ int main(int argc, char** argv) {
 
     // Make the text segment writable. Since the packed code is not necessarily location independent,
     //  we need to unpack it back to it's original address. So we must make the .text segment writable.
-    getExecutableSegment()->set_flags(SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR);
+    Utility::getExecutableSegment()->set_flags(SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR);
 
     // Create the loader code section
     ELFIO::section *loaderCodeSection = Allocator::addLoaderSec(LOADER_CODE_SIZE);
 
-    ELFIO::section *textSection = getTextSection();
+    ELFIO::section *textSection = Utility::getTextSection();
     // Override old code from text section
     // Since the elfio library is stupid, we need to allocate a hell lot of 0s for it
     //  to copy into section memory
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
     patcher.writeLoader(loaderCodeSection, packedCodeSec, textSection->get_address());
 
     // Save the elf
-    Globals::elf->save(string(argv[argc - 1]) + ".pck");
+    Globals::elf->save(string(argv[argc - 1]) + PACKED_FILE_EXTENSION);
 
     // TODO: Remove in production
     cout << strerror(errno) << endl;
@@ -68,14 +70,13 @@ int main(int argc, char** argv) {
 }
 
 bool initElfio(int argc, char** argv) {
+    // TODO: error
     // Check for the file's validity
     if(argc < 2) {
         cout << "Not enough arguments supplied (" + to_string(argc) +
                 "). Please specify a filename to compress" << endl;
         return true;
     }
-    //    else if(!fs::exists(argv[argc - 1])) // If the specified file does not exist
-    //        cout << "File \"" << argv[argc - 1] << "\" does not exist. Please specify a valid file." << endl;
 
     string filename = argv[argc - 1];
 
@@ -99,28 +100,4 @@ bool initElfio(int argc, char** argv) {
     else
         return true;
     return false;
-}
-
-ELFIO::segment *getExecutableSegment() {
-    ELFIO::segment *ret = nullptr;
-
-    for_each(Globals::elf->segments.begin(), Globals::elf->segments.end(), [&](ELFIO::segment *current) {
-        if(!ret && current->get_type() == PT_LOAD && current->get_flags() & SHF_EXECINSTR) ret = current;
-    });
-
-    if(!ret) throw "ERROR: no executable segment was found";
-
-    return ret;
-}
-
-ELFIO::section *getTextSection() {
-    ELFIO::section *ret = nullptr;
-
-    for_each(Globals::elf->sections.begin(), Globals::elf->sections.end(), [&](ELFIO::section *current) {
-        if(!ret && current->get_name() == ".text") ret = current;
-    });
-
-    if(!ret) throw "ERROR: no executable segment was found";
-
-    return ret;
 }

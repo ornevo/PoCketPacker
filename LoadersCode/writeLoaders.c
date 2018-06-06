@@ -1,16 +1,23 @@
-//
-// Created by ororor012 on 14/03/18.
-// This script writes the binary loader functions to individual files. Writes only the machine code of the functions,
-//     which will be injected to the code memory space.
-//
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This script writes the binary loader functions to individual files. Writes only the machine code of the functions,
+ *      which will be injected to the code memory space.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "loaders.h"
 
 #include "./packerLoader.c"
 
-// Prints function which are terminated with nop nop nop nop
-void saveFunctionMachineCode(const char* filename, void (*func)()){
+/**
+ * Dumps functions into files, to be later patched into the ELF.
+ * The functions should be terminated with LOADER_FUNC_TERMINATE (which is "nop nop nop nop")
+ * @param filename is the destination filename, to which the function will be dumped.
+ * @param func is a pointer to the function to dump.
+ */
+void dumpFunctionMachineCode(const char *filename, void (*func)()){
     char* readPtr = (char*) func;
     FILE * output = fopen(filename, "w");
     if (!output) {
@@ -18,7 +25,8 @@ void saveFunctionMachineCode(const char* filename, void (*func)()){
         exit(1);
     }
 
-    while (*((unsigned int *)readPtr) != LOADER_FUNC_TERMINATOR_OPCODE) // While end delimeter not found
+    // While end delimeter not found
+    while (*((unsigned int *)readPtr) != LOADER_FUNC_TERMINATOR_OPCODE)
         if(fputc(*(readPtr++), output) == EOF){
             fprintf(stderr, "Error writing data to file \"%s\".\nBye!\n", filename);
             exit(1);
@@ -28,5 +36,5 @@ void saveFunctionMachineCode(const char* filename, void (*func)()){
 }
 
 void main(void) {
-    saveFunctionMachineCode("packerLoader.bin", packerLoader);
+    dumpFunctionMachineCode("packerLoader.bin", packerLoader);
 }

@@ -1,12 +1,17 @@
-//
-// Created by ororor012 on 04/05/18.
-//
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This file is the implementation of the CodePatcher class, which writes the loader's code
+ *      to the ELF's new entrypoint.
+ */
 
 #include "CodePatcher.h"
 
 
 using namespace std;
 
+
+/* PUBLIC FUNCTIONS */
 
 CodePatcher::CodePatcher() : code(new char[LOADER_CODE_SIZE]),
                              localbuff(new char[LOCAL_BUFF_SIZE]),
@@ -62,7 +67,7 @@ void CodePatcher::writeLoader(ELFIO::section *loaderCodeSection, ELFIO::section 
     writeData(sizeof(uint_least16_t));
 
     // Make sure no extra uneeded buffer was allocated. Just for sake good programming practices.
-    if(offset != LOADER_CODE_SIZE)
+    if(offset != LOADER_CODE_SIZE) // TODO: ERROR
         cout << "Warning: The specified loader code size defined in the program is bigger than"
                 " the code actually is.\nIf you see this message, letting developers know would be much appreciated." << endl;
 
@@ -72,6 +77,9 @@ void CodePatcher::writeLoader(ELFIO::section *loaderCodeSection, ELFIO::section 
     // And finally, redirect the entrypoint
     Globals::elf->set_entry(loaderCodeSection->get_address());
 }
+
+
+/* PRIVATE FUNCTIONS */
 
 void CodePatcher::writeData(int datalen) {
     this->writeData(datalen, this->localbuff.get());
@@ -99,10 +107,10 @@ void CodePatcher::writeMovInstruction(unsigned short movInstPrefix, unsigned lon
 }
 
 void CodePatcher::writeUnpackerLoader() {
-    ifstream unpackerCodeFile("./LoadersCode/packerLoader.bin", ios::binary | ios::ate);
+    ifstream unpackerCodeFile(UNPACKER_CODE_FILE_PATH, ios::binary | ios::ate);
 
     int unpackerCodeSize = (int)unpackerCodeFile.tellg();
-    if(unpackerCodeSize != UNPACKER_CODE_SIZE){
+    if(unpackerCodeSize != UNPACKER_CODE_SIZE){ // TODO: error
         cout << "ERROR: The loader's code size found in packerLoader.bin does not match the one "
              "defined in the program.\nPlease contact the developers for further support." << endl;
         exit(1);
@@ -115,7 +123,7 @@ void CodePatcher::writeUnpackerLoader() {
     offset += unpackerCodeSize;
 }
 
-void CodePatcher::emitBufferOverflowError() {
+void CodePatcher::emitBufferOverflowError() { // TODO: error
     cout << "ERROR: Stack overflow detected while writing loader.\n"
             "Please contact the developers for further support." << endl;
     exit(1);

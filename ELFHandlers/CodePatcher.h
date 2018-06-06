@@ -1,6 +1,11 @@
-//
-// Created by ororor012 on 04/05/18.
-//
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This file is the definition of the CodePatcher class, which writes the loader's code
+ *      to the ELF's new entrypoint.
+ *  It also defines as constants the assembly opcodes of different instructions which gets
+ *      written to the loader's code dynamically by the CodePatcher.
+ */
 
 #ifndef FINALPACKERTRY_CODEALLOCATOR_H
 #define FINALPACKERTRY_CODEALLOCATOR_H
@@ -9,7 +14,7 @@
 #include "../include/elfio/elfio.hpp"
 #include "../include/elfio/elfio_section.hpp"
 #include "../include/elfio/elfio_segment.hpp"
-#include "./Globals.h"
+#include "../Helpers/Globals.h"
 #include <memory>
 #include <cstdint>
 
@@ -39,8 +44,12 @@
 // The size of the local buffer from which the data is being copied to the unpacking code.
 #define LOCAL_BUFF_SIZE 100
 
+#define UNPACKER_CODE_FILE_PATH "./LoadersCode/packerLoader.bin"
+
 // Push and pop instructions for all registers
 #define STACK_BUCKUP_ARRS_LEN 24
+
+
 const unsigned char PUSHA_CODE[] = {0x54, 0x50, 0x53, 0x51, 0x52, 0x56, 0x57, 0x55, 0x41, 0x50, 0x41, 0x51, 0x41, 0x52, 0x41, 0x53, 0x41, 0x54, 0x41, 0x55, 0x41, 0x56, 0x41, 0x57};
 const unsigned char POPA_CODE[]  = {0x41, 0x5f, 0x41, 0x5e, 0x41, 0x5d, 0x41, 0x5c, 0x41, 0x5b, 0x41, 0x5a, 0x41, 0x59, 0x41, 0x58, 0x5d, 0x5f, 0x5e, 0x5a, 0x59, 0x5b, 0x58, 0x5c};
 
@@ -91,10 +100,11 @@ private:
 public:
     CodePatcher();
 
-    /*
-     * Writes the loader to the entrypoint.
-     * parameter loaderCodeSection: the section to which we should write the code
-     * parameter packedCodeSection: the section that contains the packed code.
+    /**
+     * Writes the loader to the entry-point.
+     * @param loaderCodeSection is the section to which we should write the code.
+     * @param packedCodeSection is the section that contains the packed code.
+     * @param textSecAddr is the virtual address of the .text section
      */
     void
     writeLoader(ELFIO::section *loaderCodeSection, ELFIO::section *packedCodeSection, ELFIO::Elf64_Addr textSecAddr);

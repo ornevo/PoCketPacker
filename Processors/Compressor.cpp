@@ -1,28 +1,31 @@
-//
-// Created by ororor012 on 04/05/18.
-//
+/*
+ * Created by Or Nevo Michrowski
+ * Description:
+ *  This file is the implementation of the Compressor class, which implements the
+ *      huffman tree compression algorithm and uses it to compress the code of the ELF
+ *      for runtime extraction.
+ */
 
 #include "Compressor.h"
-#include "Globals.h"
+#include "../Helpers/Globals.h"
 #include <climits>
+
+#define DEBUG
 
 
 using namespace std;
 
-#define DEBUG
 
-// Public
+/* PUBLIC FUNCTIONS */
 
 std::vector<char> Compressor::compressCode() {
+    // This function simply calls the compress function. All it does is getting the code from the
+    //  elfio object, and transforming the return char* value into the vector
+
     // Get the code
-    const char* code;
-    unsigned long codeSize;
-    for_each(Globals::elf->sections.begin(), Globals::elf->sections.end(), [&](ELFIO::section *current) {
-       if(current->get_name() == ".text") {
-           code = current->get_data();
-           codeSize = current->get_size();
-       }
-    });
+    ELFIO::section *codeSec = Utility::getTextSection();
+    const char* code = codeSec->get_data();
+    unsigned long codeSize = codeSec->get_size();
 
     CompressionRetVal compressedCodeStruct = Compressor::compress(code, codeSize);
 
@@ -31,10 +34,10 @@ std::vector<char> Compressor::compressCode() {
 }
 
 
-// Private
+/* PRIVATE FUNCTIONS */
 
 CompressionRetVal Compressor::compress(const char* data, unsigned long dataLen) {
-    vector<shared_ptr<TNode>> freqs = fileToFreqMap(data, dataLen); // generate frequencies map from the source file.
+    vector<shared_ptr<TNode>> freqs = dataToFreqMap(data, dataLen); // generate frequencies map from the source file.
 
     // Since buildTreeFromArr modifies the array and we need it for later header
     //  construction, clone it
@@ -58,7 +61,7 @@ CompressionRetVal Compressor::compress(const char* data, unsigned long dataLen) 
     setEncodingCodes(huffTree); // Give each leaf an encoding
 
     /* Start writing of the compressed data */
-    fstream &output = Globals::getTmpFile();
+    fstream &output = getTmpFile();
 
     // Write frequencies to header
     for(auto i = freqsCopyForHeader.begin(); i < freqsCopyForHeader.end(); i++) {
@@ -150,12 +153,12 @@ shared_ptr<TNode> Compressor::buildTreeFromFreqMap(vector<shared_ptr<TNode>> vec
     return buildTreeFromFreqMap(vec);
 }
 
-vector<shared_ptr<TNode>> Compressor::fileToFreqMap(const char *inp, unsigned long size){
+vector<shared_ptr<TNode>> Compressor::dataToFreqMap(const char *data, unsigned long size){
     vector<shared_ptr<TNode>> ret(UCHAR_MAX + 1);
     unsigned char curr;
 
     for (unsigned long i = 0; i < size; ++i) {
-        curr = inp[i];
+        curr = data[i];
         // Increase this char's frequency by 1
         if(!ret[curr].use_count()) // create frequency entry for this char
             ret[curr] = shared_ptr<TNode>(new TNode(curr));
@@ -167,6 +170,7 @@ vector<shared_ptr<TNode>> Compressor::fileToFreqMap(const char *inp, unsigned lo
 }
 
 void Compressor::setEncodingCodes(shared_ptr<TNode> huffTree) { setEncodingCodes("", std::move(huffTree)); }
+
 void Compressor::setEncodingCodes(string pathSoFar, shared_ptr<TNode> huffTree) {
     if(huffTree -> isSet) {
         huffTree->encoding = pathSoFar;
@@ -175,4 +179,31 @@ void Compressor::setEncodingCodes(string pathSoFar, shared_ptr<TNode> huffTree) 
         setEncodingCodes(pathSoFar + "0", huffTree -> left);
         setEncodingCodes(pathSoFar + "1", huffTree -> right);
     }
+}
+
+fstream& Compressor::getTmpFile(bool trunc) {
+    static fstream tmpFile;
+
+    if(tmpFile.is_open()){
+        // If the file is already open and no truncation is required, just return it.
+        // If we want to truncate, close it for reopening.
+        if(trunc)
+            tmpFile.close(); // for reopen, to truncate
+        else {
+            tmpFile.seekg(0, ios_base::beg);
+            return tmpFile;
+        }
+    }
+
+    // If not open yet, open it
+    tmpFile.open(TMP_FILE_PATH,
+                 fstream::in | fstream::out | (trunc ? fstream::trunc : fstream::app) | fstream::binary);
+
+    if (!tmpFile.good()) {
+        cout << "ERROR opening tmp file for read/write." << endl;
+        exit(1);
+    }
+
+    tmpFile.seekg(0, ios_base::beg);
+    return tmpFile;
 }
