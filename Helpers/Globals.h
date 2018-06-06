@@ -13,9 +13,12 @@
 #define TMP_FILE_PATH "/tmp/pocketpacker.tmp"
 
 
+using namespace std;
+
+
 class Globals {
 public:
-    static std::shared_ptr<ELFIO::elfio> elf;
+    static shared_ptr<ELFIO::elfio> elf;
 };
 
 

@@ -10,4 +10,4 @@
 using namespace std;
 
 
-std::shared_ptr<ELFIO::elfio> Globals::elf((ELFIO::elfio*) new ELFIO::elfio());
+shared_ptr<ELFIO::elfio> Globals::elf((ELFIO::elfio*) new ELFIO::elfio());

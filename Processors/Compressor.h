@@ -30,9 +30,9 @@ class TNode{
 public:
     char ch;
     unsigned long freq;
-    std::string encoding;
+    string encoding;
     bool isSet;
-    std::shared_ptr<TNode> right, left;
+    shared_ptr<TNode> right, left;
 
     TNode() :  ch('\x00'),
                freq(0),
@@ -45,8 +45,8 @@ public:
 
 
     TNode(unsigned long chFreq,
-          std::shared_ptr<TNode> leftNode,
-          std::shared_ptr<TNode> rightNode) : freq(chFreq),
+          shared_ptr<TNode> leftNode,
+          shared_ptr<TNode> rightNode) : freq(chFreq),
                                          right(rightNode),
                                          left(leftNode),
                                          isSet(false) {}
@@ -135,7 +135,7 @@ private:
      * @param trunc indicates whether to truncate the file's previous content
      * @return the temporary file's handle.
      */
-    static std::fstream& getTmpFile(bool trunc=true);
+    static fstream& getTmpFile(bool trunc=true);
 };
 
 

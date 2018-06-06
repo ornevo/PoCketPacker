@@ -18,7 +18,7 @@ using namespace std;
 
 /* PUBLIC FUNCTIONS */
 
-std::vector<char> Compressor::compressCode() {
+vector<char> Compressor::compressCode() {
     // This function simply calls the compress function. All it does is getting the code from the
     //  elfio object, and transforming the return char* value into the vector
 
@@ -29,7 +29,7 @@ std::vector<char> Compressor::compressCode() {
 
     CompressionRetVal compressedCodeStruct = Compressor::compress(code, codeSize);
 
-    return std::vector<char>(compressedCodeStruct.compressedCode,
+    return vector<char>(compressedCodeStruct.compressedCode,
                              compressedCodeStruct.compressedCode + compressedCodeStruct.compressedDataSize);
 }
 
@@ -169,7 +169,7 @@ vector<shared_ptr<TNode>> Compressor::dataToFreqMap(const char *data, unsigned l
     return ret;
 }
 
-void Compressor::setEncodingCodes(shared_ptr<TNode> huffTree) { setEncodingCodes("", std::move(huffTree)); }
+void Compressor::setEncodingCodes(shared_ptr<TNode> huffTree) { setEncodingCodes("", move(huffTree)); }
 
 void Compressor::setEncodingCodes(string pathSoFar, shared_ptr<TNode> huffTree) {
     if(huffTree -> isSet) {
