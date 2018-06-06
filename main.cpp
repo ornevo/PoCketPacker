@@ -75,8 +75,9 @@ int main(int argc, char** argv) {
     patcher.writeLoader(loaderCodeSection, packedCodeSec, textSection->get_address());
 
     // Save the elf
-    Logger::log("saving result...");
-    Globals::elf->save(string(argv[argc - 1]) + PACKED_FILE_EXTENSION);
+    string resultFileName = string(argv[argc - 1]) + PACKED_FILE_EXTENSION;
+    Logger::log("saving result as \"" + resultFileName + "\"...");
+    Globals::elf->save(resultFileName);
     // If caused a file saving error
     if(errno)
         Logger::throwErr(strerror(errno));
