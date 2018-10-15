@@ -5,6 +5,8 @@ This file contains constants for the GUI script
 
 # General constants
 EXIT_CODE_LOG = "Exit status code: "
+PACKED_FILE_EXT = ".pck"
+EXECUTABLE_PERMS = 509  # which is -rwxrwxr-x (775 in octal)
 
 # Log box constants
 # The amount of characters the selected path
@@ -55,3 +57,4 @@ PACKER_NOT_FOUND_ERR = "ERROR: The PoCketPacker executable was not found in " \
                        "\"{LOCAL_PACKER_DIRECTORY}/\"?\n" + \
                        "Current working directory: "
 DIDNT_CHOOSE_FILE_ERR = "Please select a file to pack."
+NO_OUTPUT_FILE_ERR = "Warning: Process finished successfully, but couldn't find the packed file at"

@@ -52,5 +52,12 @@ def launch():
     if not return_code:
         set_status(STAT_FINISH_SUCCESS)
         log(EXIT_CODE_LOG + str(return_code))
+
+        # Make the output file executable
+        output_file_name = file_to_pack + PACKED_FILE_EXT
+        if os.path.isfile(output_file_name):
+            os.chmod(output_file_name, EXECUTABLE_PERMS)
+        else:
+            log(NO_OUTPUT_FILE_ERR + output_file_name)
     else:
         set_status(STAT_FINISH_ABORT)
