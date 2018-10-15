@@ -90,7 +90,6 @@ private:
      * @param data is a pointer to the data to compress
      * @param dataLen is the amount of bytes to read from data
      * @return a raw pointer to the compressed data.
-     * First 8 bytes are the returned data size, then byte 9 and on is the compressed data
      */
     static CompressionRetVal compress(const char* data, unsigned long dataLen);
 
@@ -131,7 +130,7 @@ private:
     static void setEncodingCodes(string pathSoFar, shared_ptr<TNode> huffTree);
 
     /**
-     * Supplies a temporary file for proccessing
+     * Supplies a temporary file for processing
      * @param trunc indicates whether to truncate the file's previous content
      * @return the temporary file's handle.
      */
